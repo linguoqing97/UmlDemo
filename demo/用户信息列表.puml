@@ -1,0 +1,46 @@
+@startuml
+
+客户端 -> PubUserController: 点击 菜单/查询 selectUsers
+activate 客户端
+activate PubUserController
+note left
+    参数:
+    PageLimit 分页参数
+    PubUser 用户实体对象
+    <color red>HttpServletRequest （实际未用到）
+end note
+
+PubUserController -> PubUserService: selectUsersByPage
+note left
+    参数:
+    PageLimit 分页参数
+    PubUser 用户实体对象
+end note
+
+activate PubUserService
+PubUserService -> PubUserService : 判断PubUser对象中 \n queryKey是否为空
+
+PubUserService -> PubUserDao: selectUsers
+note left
+    参数:
+    PubUser 用户实体对象
+end note
+activate PubUserDao
+PubUserDao -> PubUserDao: 得出结果List
+return list
+
+return list
+
+return list PubUser类型
+deactivate 客户端
+note left
+企业端展示字段：
+    用户名 userName
+    登录名 loginName
+    状态 userState
+    手机号mobileNo
+    拥有角色userRoleNames
+    所属企业 entName
+    企业类型 entType
+end note
+@enduml

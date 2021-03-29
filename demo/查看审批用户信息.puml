@@ -1,0 +1,65 @@
+@startuml
+
+-> 客户端: 点击企业用户审批信息，进入相应页面
+activate 客户端
+客户端 -> PubUserModifyController: getApproveTableForEnt
+activate PubUserModifyController
+note left
+    参数:
+        PageLimit 分页参数
+        approveType 提交审批状态
+        approveQueryValue 查询条件（人工输入）
+end note
+
+PubUserModifyController -> CurrentUserFacade: getUserId
+note left
+    获取创建人Id
+end note
+activate CurrentUserFacade
+return editorId
+
+PubUserModifyController -> CurrentUserFacade: getEntId
+note left
+    获取企业Id
+end note
+activate CurrentUserFacade
+return entId
+
+PubUserModifyController -> PubUserModifyService: getInfoListByType
+note left
+    参数:
+        PageLimit 分页参数
+        approveType 提交审批状态
+        approveQueryValue 查询条件（人工输入）
+        editorId 创建人id
+        entId 企业id
+end note
+
+activate PubUserModifyService
+
+PubUserModifyService -> PubUserModifyDao: getAdvices
+note left
+    参数:
+        approveType 提交审批状态
+        approveQueryValue 查询条件（人工输入）
+        editorId 创建人id
+        entId 企业id
+end note
+activate PubUserModifyDao
+PubUserModifyDao -> PubUserModifyDao: 得出结果List
+return list<PubUserModify>
+
+return list<PubUserModify>
+
+return list<PubUserModify>
+deactivate 客户端
+
+note left
+企业端展示字段：
+    用户名      userNameNew
+    状态        userState
+    创建人      editorName
+    创建时间    editTime
+    所属企业    entName
+end note
+@enduml

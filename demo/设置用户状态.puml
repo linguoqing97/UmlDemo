@@ -1,0 +1,49 @@
+@startuml
+
+客户端 -> PubUserController: 点击 冻结/启用 setStatus
+activate 客户端
+activate PubUserController
+note left
+    参数:
+        id 用户id
+        userState 用户状态
+        authCertificate 用户认证
+end note
+
+PubUserController -> PersistentService: selectByKey得到\nPubUser用户实体对象
+note left
+参数:
+    user.getId() 用户id
+end note
+activate PersistentService
+return PubUser实体对象 updateUser
+
+PubUserController -> PubUserService: saveUser更新数据库中用户状态
+activate PubUserService
+note left
+    参数:
+        PubUser 用户实体对象
+end note
+
+PubUserService -> PersistentService: updateNotNull
+note left
+    参数:
+        PubUser 用户实体对象
+end note
+
+activate PersistentService
+return 返回“1”为更新成功\n否则为失败
+
+return retMsg
+PubUserController --> 客户端: retMsg
+deactivate PubUserController
+deactivate 客户端
+note left
+企业端获得字段：
+    bean 实体类（实际未用到）
+    msg 成功与否信息
+    show 前端是否展示弹框提示
+    title 弹框标题（实际未用到）
+    type 消息类型
+end note
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+
+客户端 -> PubUserController: 点击 菜单/查询 select
+activate 客户端
+activate PubUserController
+note left
+    参数:
+        String id 用户id
+        String entId 企业id
+end note
+
+PubUserController -> PubEnterpriseRUserService: selectOne获取用户详细信息
+activate PubEnterpriseRUserService
+note left
+    参数:
+        PubEnterpriseRUser 企业用户关系实体对象
+        （包含用户id及企业id）
+end note
+
+PubEnterpriseRUserService --> PubUserController: PubEnterpriseRUser对象
+deactivate PubEnterpriseRUserService
+'return PubEnterpriseRUser对象
+
+PubUserController -> PubUserService: selectUser
+activate PubUserService
+note left
+    参数:
+        String id 用户id
+        String entId 企业id
+end note
+
+PubUserService -> PubUserDao: selectUsers
+note left
+    参数:
+        PubUser 用户实体对象
+        (包含用户id及企业id)
+end note
+
+activate PubUserDao
+PubUserDao -> PubUserDao: 得出结果List
+
+PubUserDao --> PubUserService: list
+deactivate PubUserDao
+PubUserService --> PubUserController: 返回list.get(0)的PubUser
+
+deactivate PubUserService
+PubUserController --> 客户端: PubUser用户信息
+deactivate PubUserController
+deactivate 客户端
+note left
+企业端展示字段：
+    用户名 userName
+    登录名 loginName
+    手机号mobileNo
+    性别 sex
+    证件类型idType
+    证件号idNo
+    角色userRoleNames
+    邮箱email
+    职位jobLevel
+    职位名jobType
+end note
+@enduml

@@ -1,0 +1,99 @@
+@startuml
+
+-> 客户端: 点击进入添加用户页面（默认"新用户"）
+activate 客户端
+客户端 -> PubUserController: 输入手机号码，selectUsersInfoByMobileNo \n 校验号码是否已存在
+activate PubUserController
+PubUserController --> 客户端: 返回手机号码是否已存在
+deactivate PubUserController
+alt 前端为“新用户”
+客户端 -> PubUserModifyController: \n 填完用户信息之后，提交系统保存 \n 成功即等待系统审核，addUserInfo
+note left
+    参数:
+        PubUser对象:
+            用户名 userName
+            手机号 mobileNo
+            确认手机号 mobileNoComfirm
+            证件类型 idType
+            证件号 idNo
+            邮箱 email
+            性别 sex
+            职位 jobLevel
+            职位类型 jobType
+            用户身份证件 fileId
+            授权委托书 authletterFileId
+            终端代码 terminalCode jdh_ent
+            用户认证 authCertificate
+end note
+activate PubUserModifyController
+
+    PubUserModifyController -> PubUserModifyService: transAndInsert
+    activate PubUserModifyService
+
+    PubUserModifyService -> PubUserModifyService: 判断PubUser的id是否为空\n判断是否为批量注册\n判断是否为服用管理员
+    PubUserModifyService -> PubUserModifyService: 校验传入的对象是否\n在修改表中已存在
+    PubUserModifyService -> PubFileService: 保存身份证件文件\n与用户授权委托书
+
+    PubUserModifyService -> PubUserModifyDao:saveOrUpdate
+    note left
+        参数:
+        PubUserModify对象
+    end note
+
+    activate PubUserModifyDao
+    return retMsg
+    return retMsg
+    return retMsg
+    deactivate 客户端
+
+else 前端为“其他企业用户”
+    客户端 -> PubUserModifyController: \n 填完用户信息之后，提交系统保存 \n 成功即等待系统审核，addUserInfo
+    activate 客户端
+    activate PubUserModifyController
+    note left
+        参数:
+            PubUser对象:
+                用户名 userName
+                手机号 mobileNo
+                确认手机号 mobileNoComfirm
+                职位 jobLevel
+                职位类型 jobType
+                用户身份证件 fileId
+                授权委托书 authletterFileId
+                终端代码 terminalCode jdh_ent
+                用户认证 authCertificate
+    end note
+
+    PubUserModifyController -> PubUserModifyService: transAndInsert
+        activate PubUserModifyService
+
+        PubUserModifyService -> PubUserModifyService: 判断PubUser的id是否为空\n判断是否为批量注册\n判断是否为服用管理员
+        PubUserModifyService -> PubUserModifyService: 校验传入的对象是否\n在修改表中已存在
+        PubUserModifyService -> PubFileService: 保存身份证件文件\n与用户授权委托书
+
+        PubUserModifyService -> PubUserModifyDao:saveOrUpdate
+        note left
+            参数:
+            PubUserModify对象
+        end note
+
+        activate PubUserModifyDao
+        return retMsg
+        return retMsg
+        return retMsg
+        note left
+        企业端获得字段：
+            bean 实体类（实际未用到）
+            msg 成功与否信息
+            show 前端是否展示弹框提示
+            title 弹框标题（实际未用到）
+            type 消息类型
+        end note
+        deactivate 客户端
+
+end alt
+
+
+
+
+@enduml

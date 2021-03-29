@@ -1,0 +1,51 @@
+@startuml
+
+title 工作流
+
+
+(*) --> "发票查验（applyInvoiceCheck）"
+if "校验发票" then
+   ->[通过] === 中间流程汇总点1 ===
+
+   if "开票人和承兑人是否一致" then
+    ->[是] "承兑审批（payerAudit）"
+   else
+    ->[否] "开票审批（payerAudit）"
+    -->[通过] "承兑审批（payerAudit）"
+   endif
+
+   if "是否存在保证人" then
+   ->[是] "保证审批（pGuarantorAudit）"
+   -->[通过] "开票签收（takerReceive）"
+   else
+   ->[否] "开票签收（takerReceive）"
+   endif
+
+   -->[通过] "平台审批(platformAudit)"
+
+   if "审核" then
+   -->[贸易背景/票据问题] "开票驳回审批(issuerManageAudit)"
+   else
+    -->[通过/重新登记] "出票登记(issueRegisterAudit)"
+   endif
+
+   if "登记结果" then
+   -->[成功] (*)
+   else
+   -->[失败] "平台审批(platformAudit)"
+   endif
+
+
+
+else
+   ->[不通过] "开票驳回审批(issuerManageAudit)"
+   if "编辑" then
+   -->[编辑票据信息] "发票查验（applyInvoiceCheck）"
+   else
+   -->[编辑发票信息] "平台审批(platformAudit)"
+   endif
+endif
+
+
+
+@enduml

@@ -1,0 +1,119 @@
+@startuml
+-> 客户端: 游客进入首页
+activate 客户端
+客户端 -> PasswordController: getTerminals
+activate PasswordController
+note left
+    无入参
+end note
+
+PasswordController -> ContextDataService: getContextDataFromCache 从Redis缓存中获取数据
+note left
+    无入参
+end note
+activate ContextDataService
+return Map<String, Object>
+
+PasswordController -> PasswordController: map.put("curTerminal", curTerminal)
+PasswordController -> PasswordController: map.put("entTerminal", entTerminal)
+PasswordController -> PasswordController: map.put("mgtTerminal", mgtTerminal)
+return Map<String, Object>
+note left #yellow
+    得到终端信息
+end note
+
+客户端 -> PubNoticeInfoController: selectNoticeWithType 获取公告信息
+activate PubNoticeInfoController
+note left
+    参数:
+        pageSize 分页信息
+        isIndex 是否为首页
+        noticeType 公告类型
+        <color red>HttpServletRequest(实际未用到)
+end note
+PubNoticeInfoController -> PubNoticeService: getNoticeWithType
+activate PubNoticeService
+note left
+    参数:
+        pageSize 分页信息
+        isIndex 是否为首页
+        PubNotice 公告实体对象（仅有类型）
+end note
+
+PubNoticeService -> PubNoticeDao: getNoticeWithType
+activate PubNoticeDao
+note left
+    参数:
+        PubNotice 公告实体对象（仅有类型）
+end note
+PubNoticeDao -> PubNoticeDao: 得出list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+
+note left #yellow
+    得到首页弹框公告信息
+end note
+
+客户端 -> PubNoticeInfoController: selectFourNoticesForIndex 获取新闻动态
+activate PubNoticeInfoController
+note left
+    参数:
+        pageNo 分页信息
+        pageSize 分页信息
+end note
+PubNoticeInfoController -> PubNoticeService: getFourNoticesForIndex
+activate PubNoticeService
+note left
+    参数:
+        pageLimit 分页信息
+        <color red>PubNotice 公告实体对象(实际未用到)
+end note
+
+PubNoticeService -> PubNoticeDao: getNoticesForIndex
+activate PubNoticeDao
+note left
+    参数:
+        <color red>PubNotice 公告实体对象(实际未用到)
+end note
+PubNoticeDao -> PubNoticeDao: 得出list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+note left #yellow
+    得到首页新闻动态
+end note
+
+客户端 -> PubCommonController: getDataForVisitorIndex 获取首页权益概览数据
+activate PubCommonController
+note left
+    无入参
+end note
+PubCommonController -> PubSummaryDao: selectAll 获取所有数据
+activate PubSummaryDao
+note left
+    无入参
+end note
+return list<PubSummary>
+
+PubCommonController -> PubEnterpriseDao: getTotalEntCount 注册企业总数
+activate PubEnterpriseDao
+note left
+    无入参
+end note
+return Integer
+
+PubCommonController -> PubCommonController: map.put("entTotal", entTotal) \n设置企业总数
+PubCommonController -> PubCommonController: map.put("billSellMoney", billSellMoney) \n设置累计交易规模
+PubCommonController -> PubCommonController: map.put("billOutputMoney", billOutputMoney) \n设置累计开单金额
+PubCommonController -> PubCommonController: map.put("billTotalMoney", billTotalMoney) \n设置融单金额
+return Map<String, Object>
+note left #yellow
+    得到首页权益概览数据
+end note
+
+deactivate 客户端
+
+
+
+@enduml

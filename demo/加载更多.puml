@@ -1,0 +1,35 @@
+@startuml
+-> 客户端: 游客点击“加载更多”
+activate 客户端
+
+客户端 -> PubNoticeInfoController: selectFourNoticesForIndex 获取新闻动态
+activate PubNoticeInfoController
+note left
+    参数:
+        pageNo 分页信息
+        pageSize 分页信息
+end note
+PubNoticeInfoController -> PubNoticeService: getFourNoticesForIndex
+activate PubNoticeService
+note left
+    参数:
+        pageLimit 分页信息
+        <color red>PubNotice 公告实体对象(实际未用到)
+end note
+
+PubNoticeService -> PubNoticeDao: getNoticesForIndex
+activate PubNoticeDao
+note left
+    参数:
+        <color red>PubNotice 公告实体对象(实际未用到)
+end note
+PubNoticeDao -> PubNoticeDao: 得出list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+return list<PubNotice>
+note left #yellow
+    得到首页新闻动态
+end note
+
+deactivate 客户端
+@enduml

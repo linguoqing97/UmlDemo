@@ -1,0 +1,79 @@
+@startuml
+
+客户端 -> PubUserController: 点击 删除用户 deleteUserEntRelationShip
+activate 客户端
+activate PubUserController
+note left
+    参数:
+        id 用户id
+        entId 企业id
+end note
+
+PubUserController -> PubUserService: selectByKey
+note left
+    参数:
+        PubUser(带有用户id)
+end note
+activate PubUserService
+return PubUser
+
+PubUserController -> PubUserController:判断用户是否被冻结
+
+PubUserController -> PubEnterpriseRUserService: deleteEntity
+note left
+    参数:
+        PubEnterpriseRUser(带有用户id及企业id)
+end note
+activate PubEnterpriseRUserService
+return 1("success") or 0("fail")
+
+PubUserController -> PubDeleteTempService: save
+note left
+    参数:
+        PubDeleteTemp
+end note
+activate PubDeleteTempService
+return 1("success") or 0("fail")
+
+PubUserController -> PubUserRRoleService: selectByEntity
+note left
+    需要删除用户角色关系表中的数据
+    先获取数据，在删除
+    参数:
+        PubUserRRole(带有用户id及企业id)
+end note
+activate PubUserRRoleService
+return list<PubUserRRole>
+
+alt list.size>0 && list != null
+PubUserController -> PubUserRRoleService: deleteEntity
+note left
+    删除用户角色关系表中的数据
+    参数:
+        PubUserRRole
+end note
+activate PubUserRRoleService
+return 1("success") or 0("fail")
+end alt
+
+alt 上述方法返回数字均大于0
+
+    PubUserController -> PubUserController: MQ运营端数据同步
+    PubUserController --> 客户端: retMsg
+    note left
+    企业端展示字段：
+        bean 实体类（实际未用到）
+        msg 成功与否信息
+        show 前端是否展示弹框提示
+        title 弹框标题（实际未用到）
+        type 消息类型
+    end note
+else
+    return retMsg
+    note left
+        否则数据不需要同步直接返回
+    end note
+end alt
+deactivate 客户端
+
+@enduml

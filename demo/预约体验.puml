@@ -1,0 +1,97 @@
+@startuml
+
+-> 客户端: 点击"预约体验",弹框输入信息
+activate 客户端
+客户端 -> PasswordController: getImageCode
+activate PasswordController
+PasswordController -> CommonDataUtil: getImageCode
+note left
+参数:
+    key 由request.getRemoteAddr()取得
+end note
+activate CommonDataUtil
+return retMsg
+return retMsg
+note left
+获得验证码图片及信息
+end note
+
+-> 客户端: 填写相应信息，点击发送验证码
+客户端 -> AppointmentController: getVerifyCode  获取短信验证码
+note left
+    参数
+        手机号 mobilePhone
+end note
+activate AppointmentController
+AppointmentController -> CacheUtil: getObj
+note left
+参数:
+    手机号 mobilePhone
+end note
+activate CacheUtil
+return isSend 根据其是否为空\n来判断手机验证码是否已发送
+
+AppointmentController -> PubUserService: getVerify 根据手机号码获取短信验证码
+activate PubUserService
+
+return verify(String)
+return retMsg
+
+客户端 -> PasswordController: getImageCode
+activate PasswordController
+PasswordController -> CommonDataUtil: getImageCode
+note left
+参数:
+    key 由request.getRemoteAddr()取得
+end note
+activate CommonDataUtil
+return retMsg
+return retMsg
+note left
+获得验证码图片及信息
+end note
+
+-> 客户端: 点击立即预约
+客户端 -> AppointmentController: saveAppointmentApply  预约体验
+note left
+    参数
+        Appointment 预约信息实体对象
+end note
+activate AppointmentController
+AppointmentController -> AppointmentService: saveAppointment
+note left
+    参数
+        Appointment 预约信息实体对象
+end note
+activate AppointmentService
+AppointmentService -> AppointmentDao: selectByAppointmentName
+activate AppointmentDao
+AppointmentDao -> AppointmentDao: 得出Appointment实体对象
+return appointment
+
+alt appointment != null  已申请过预约体验
+AppointmentService -> AppointmentController:  retMsg("已申请，请等待处理"，error)
+else 未申请过
+AppointmentService -> AppointmentDao: save 将数据保存至数据库
+note left
+    参数
+        Appointment 预约信息实体对象
+end note
+AppointmentService -> AppointmentService: 游客通过首页提交预约体验\n申请后，短信消息通知产品经理
+return retMsg
+end alt
+
+return retMsg
+
+deactivate 客户端
+
+
+note left
+企业端获得字段：
+    <color red>bean 实体类（实际未用到）
+    msg 成功与否信息
+    show 前端是否展示弹框提示
+    <color red>title 弹框标题（实际未用到）
+    type 消息类型
+end note
+@enduml

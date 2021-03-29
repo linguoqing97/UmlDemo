@@ -1,0 +1,102 @@
+@startuml
+-> 客户端: 点击授权，进入页面
+activate 客户端
+客户端 -> PubResourceController: selectResourceTreeForUser
+activate PubResourceController
+note left
+    参数:
+        authCerticate 登录用户认证
+        userId 用户id
+        entId 企业id
+        roleIds 角色id
+end note
+
+PubResourceController -> PubResourceService: selectResource4UserTree
+activate PubResourceService
+PubResourceService -> PubResourceDao: selectResource4User
+activate PubResourceDao
+PubResourceDao -> PubResourceDao: 得出结果list
+return list
+return list
+return list<PubResource>
+note left
+    企业端展示字段:
+        checked 资源是否已拥有
+        roleNames 所属角色
+        resName 资源
+        resType 资源类型
+        id 资源id
+end note
+
+
+客户端 -> PubUserController: selectUserForAuth
+activate PubUserController
+note left
+    参数:
+        authCerticate 登录用户认证
+        userId 用户id
+        entId 企业id
+end note
+
+PubUserController -> PubUserService: selectUser 获取用户信息
+activate PubUserService
+note left
+    参数:
+        userId 用户id
+        entId 企业id
+end note
+return PubUser实体对象
+
+PubUserController -> PubUserService: selectRoleForUser 获取用户信息
+activate PubUserService
+note left
+    参数:
+        userId 用户id
+        entId 企业id
+end note
+return list<PubRole>
+
+PubUserController -> PubUserController: 将roles与user合并进\nMap<String, Object>并返回
+
+return Map<String, Object>
+
+note left
+企业端展示字段：
+    userName 用户名
+    loginName 登录名
+    entName 所属企业
+
+    拥有角色：
+        roleName 角色名称
+        checked 角色是否已拥有
+end note
+deactivate 客户端
+
+-> 客户端: 点击保存
+activate 客户端
+客户端 -> PubUserController: authUser
+
+activate PubUserController
+note left
+    参数：
+        userId 用户id
+        entId 企业id
+        roleIds 角色id
+        exceptResIds 不包含的资源id
+        authCertificate 登录用户认证
+end note
+PubUserController -> PubUserService: authUser
+activate PubUserService
+PubUserService -> PubUserService : 授权相应操作
+return retMsg
+return retMsg
+note left
+企业端获得字段：
+    bean 实体类（实际未用到）
+    msg 成功与否信息
+    show 前端是否展示弹框提示
+    title 弹框标题（实际未用到）
+    type 消息类型
+end note
+deactivate 客户端
+@enduml

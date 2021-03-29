@@ -1,0 +1,82 @@
+@startuml
+
+-> 客户端: 点击"查看详情"，进入相应页面
+activate 客户端
+客户端 -> PubUserModifyController: getUserInfo
+activate PubUserModifyController
+note left
+    参数:
+        id （pub_user_modify表中的id）
+end note
+
+PubUserModifyController -> PubUserModifyService: selectOne
+note left
+    PubUserModify(仅带有id信息)
+end note
+activate PubUserModifyService
+return PubUserModify实体对象
+return PubUserModify实体对象
+note left
+    企业端展示字段：
+        用户名称（新）userNameNew
+        证件类型（新）idTypeNew
+        证件号（新）idNoNew
+        性别（新） sexNew
+        手机号（新） mobileNoNew
+        邮箱 emailNew
+        职位 jobLevelNew
+        职位名称 jobTypeNew
+        是否复用已注册用户 reuse
+end note
+
+客户端 -> PubEnterpriseController: queryEntInfo
+activate PubEnterpriseController
+note left
+    参数:
+        企业id entId
+end note
+
+PubEnterpriseController -> PubEnterpriseService: getEnterpriseById
+note left
+    参数:
+        企业id entId
+end note
+activate PubEnterpriseService
+return PubEnterprise实体对象
+return PubEnterprise实体对象
+note left
+    企业端展示字段：
+        企业 entName
+end note
+deactivate 客户端
+
+-> 客户端: 点击身份证件 "查看"
+activate 客户端
+客户端 -> PubFileController: selectFilesByRelateId
+note left
+    参数:
+        relateId 文件关联id
+        fileType 文件类型
+        <color red>id  文件id（未使用）
+end note
+activate PubFileController
+return list<PubFile>
+note left
+    展示身份证件图片
+end note
+deactivate 客户端
+
+-> 客户端: 点击授权委托书 "查看"
+activate 客户端
+客户端 -> PubFileController: selectFilesByRelateId
+note left
+    参数:
+        id  文件id
+end note
+activate PubFileController
+return list<PubFile>
+note left
+    展示身份证件图片
+end note
+deactivate 客户端
+@enduml

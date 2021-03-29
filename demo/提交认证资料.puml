@@ -1,0 +1,46 @@
+@startuml
+activate 客户端
+
+客户端 -> 门户: 点击提交“按钮”
+note left
+    参数:
+        企业id
+        企业信用代码文件
+        银行账户号
+        银行账户文件
+        法人文件
+        用户列表：
+        [包含身份证、委托书文件]
+end note
+activate 门户
+
+门户 -> CIF: 关联企业、银行账户、法人身份证文件\n（涉及o_pub_file表）
+activate CIF
+
+门户 -> CIF: \n根据userId查询用户信息，涉及cif_ent_user表
+
+CIF -> 门户: 返回用户列表信息
+
+门户 -> 门户: \n根据上传的用户列表\n在pub_user_modify表中插入已上传的用户记录\n得到pub_user_modify表id
+
+门户 -> CIF: \n将user_modify表id与o_pub_file表文件关联
+
+CIF -> 门户: \n返回数据插入或修改结果
+
+门户 -> 门户: \n判断哪些资料已提交完毕
+
+门户 -> CIF: 根据判断结果 :\n在o_ent_register_course表插入流程节点数据(6种)
+
+门户 -> CIF: \n\n查询企业流程节点，涉及o_ent_register_course表
+
+CIF -> 门户: 返回企业流程节点
+
+
+门户 -> CIF: \n根据流程节点信息\n更新o_enterprise_auth_assist表企业及文件状态\n更新cif_bank_acct表账户状态
+
+return 结束
+return 结束
+
+deactivate 客户端
+
+@enduml

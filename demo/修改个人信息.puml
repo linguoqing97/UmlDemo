@@ -1,0 +1,124 @@
+@startuml
+-> 客户端: 点击修改个人信息，进入编辑页面
+activate 客户端
+客户端 -> PubUserController: select
+activate PubUserController
+note left
+    参数:
+        authCerticate 登录用户认证
+        userId 用户id
+        entId 企业id
+end note
+
+PubUserController -> PubEnterpriseRUserService: selectOne
+note left
+    参数:
+        PubEnterpriseRUser实体对象
+        （带有用户id和企业id）
+end note
+activate PubEnterpriseRUserService
+return PubEnterpriseRUser
+
+PubUserController -> PubUserService: selectUser
+note left
+    参数:
+        用户id
+        企业id
+end note
+activate PubUserService
+
+PubUserService -> PubUserDao: selectUsers
+note left
+    参数:
+        用户id
+        企业id
+end note
+activate PubUserDao
+PubUserDao -> PubUserDao: 得出List<PubUser>
+return list
+
+PubUserService -> PubUserService:取list第一个元素\nPubUser
+return PubUser
+return PubUser
+note left
+    企业端展示字段:
+        loginName 登录名
+        userName 用户名
+        idType 证件类型
+        idNo 证件号
+        sex 性别
+        mobileNo 手机号
+        email 邮箱
+        jobLevel 职位
+        jobType 职位类型
+end note
+deactivate 客户端
+
+-> 客户端: 点击保存，提交编辑信息
+activate 客户端
+客户端 -> PubUserModifyController: updateUserInfo
+activate PubUserModifyController
+note left
+    参数:
+        id 用户id
+        userState 用户状态
+        loginName 登录名
+        idType 证件类型
+        idNo 证件号
+        sex 性别
+        mobileNo 手机号
+        email 邮箱
+        jobLevel 职位
+        jobType 职位类型
+        entId 企业id
+        entCode 企业代码
+        current 当前终端类型
+        authCerticate 登录用户认证
+end note
+PubUserModifyController -> PubUserModifyController: 判断用户是否处于审批状态
+PubUserModifyController -> PubUserModifyController: 校验传入的待修改对象是否\n在修改表中已存在
+
+PubUserModifyController -> PubEnterpriseRUserService: updateNotNull
+activate PubEnterpriseRUserService
+note right
+    参数：
+        PubEnterpriseRUser实体对象
+end note
+return 无返回
+
+PubUserModifyController -> PubUserService: updateUserInfo
+note right
+    参数：
+        PubUser实体对象
+end note
+activate PubUserService
+PubUserService -> PubUserDao: updateByLoginName
+activate PubUserDao
+PubUserDao -> PubUserDao: 更新用户信息\n成功返回1\n失败返回0
+return 1 or 0
+
+alt PubUserDao返回1
+    PubUserService -> PubUserModifyController: retMsg("success")
+    PubUserModifyController -> DataSyncProducer: updateUserInfoSync
+    activate DataSyncProducer
+    DataSyncProducer -> DataSyncProducer: MQ同步产品数据
+    return
+else PubUserDao返回0
+    PubUserService -> PubUserModifyController: retMsg("fail")
+    deactivate PubUserService
+end alt
+
+return retMsg
+note left
+    企业端展示字段：
+        bean 实体类（实际未用到）
+        msg 成功与否信息
+        show 前端是否展示弹框提示
+        title 弹框标题（实际未用到）
+        type 消息类型
+end note
+deactivate 客户端
+
+
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml
+title:票据签发
+autonumber
+participant web
+participant 供票服务
+participant 文件系统
+participant 贸易背景
+participant 工作流
+participant 短信服务
+web->web:点击票据签发
+web->web:填写出票人信息
+web->web:填写承兑人信息
+web->web:填写收票人信息
+web->web:填写保证人信息（非必须）
+web->web:填写票据信息
+web->web:点击下一步
+web->供票服务:请求保存第一步数据
+
+activate 供票服务
+供票服务->供票服务:入参校验
+供票服务->供票服务:创建交易单（trade表,交易状态 1-初始）
+供票服务->供票服务:创建交易单记录（trade_detail表，预生成bill_id和bill_code）
+供票服务->供票服务:添加资产记录（assert表，资产状态=0初始）
+供票服务->供票服务:添加开票拓展记录，绑定资产id(trade_issue_ext表)
+供票服务-->web:返回trade_code
+deactivate
+
+web->供票服务:上传贸易背景资料
+activate 供票服务
+供票服务->文件系统:上传贸易背景资料
+文件系统-->供票服务:贸易背景文件id
+供票服务-->web:贸易背景文件id
+deactivate
+
+web->供票服务:请求发票清单
+activate 供票服务
+供票服务->贸易背景:请求发票列表
+贸易背景-->供票服务:可用的发票列表
+供票服务-->web:可用的发票资料
+deactivate
+
+web->供票服务:点击下一步
+activate 供票服务
+供票服务->供票服务:入参校验，若有上传发票，则校验发票金额和开票金额大小\n反之则不校验
+供票服务->贸易背景:发送选定的发票id和文件id
+activate 贸易背景
+贸易背景->贸易背景:校验发票是否可用
+alt 发票不可用
+    贸易背景->短信服务:发送短信通知开票人发票不可用
+else 发票可用
+    贸易背景-->供票服务:贸易背景id
+end alt
+deactivate 贸易背景
+供票服务->供票服务:绑定贸易背景id（trade_issue_ext表）
+供票服务-->web:展示票面核对信息
+deactivate
+
+web->供票服务:确认提交
+activate 供票服务
+供票服务->供票服务:动态密码器挑战码校验
+供票服务->供票服务:修改trade状态，1初始->2待审核
+供票服务->工作流:请求开启工作流
+工作流-->供票服务:返回工作流id
+供票服务->供票服务:保存工作流id
+供票服务->短信服务:发送短信通知下一审批人
+供票服务->web:完成
+deactivate
+
+
+
+
+
+
+
+
+@enduml
+

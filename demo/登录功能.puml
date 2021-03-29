@@ -1,0 +1,79 @@
+@startuml
+-> 客户端: 进入登录页面，选择账号密码\n或手机验证码登录
+activate 客户端
+客户端 -> AuthController: login
+activate AuthController
+note left
+    参数:
+        userName 账号或手机
+        password 密码
+        rememberMe 是否记住密码
+        isMess 是否短信验证码登录
+        <color red>loginUrl 登录地址
+        imgCode 图片验证码
+        key 图片验证码key
+        noCode 是否无需图片验证码检查
+end note
+
+AuthController -> AuthController: 判断用户名或密码不能为空
+AuthController -> AuthController: 运营端登录，跳过图片验证码检查
+AuthController -> PubUserService: loginValidate 登录验证
+note left
+    参数:
+        userName 账号或手机
+        password 密码
+        isMess 是否短信验证码登录
+end note
+activate PubUserService
+PubUserService -> PubUserDao: findUserByLoginName 通过账号\n或手机号获取用户信息
+activate PubUserDao
+return PubUser
+
+PubUserService -> PubUserService: 验证账号是否存在\n若不存在则返回\nretMsg("账户不存在或者密码错误")
+PubUserService -> PubUserService: 验证账号是否被冻结
+PubUserService -> PubUserService: 密码错误超过5次，则锁定30分钟
+PubUserService -> PubUserService: 30分钟后登录，解除锁定
+PubUserService -> PubUserService: 根据isMess值决定是否是短信验证码登录
+
+alt 短信登录
+PubUserService -> CacheUtil: getObj 验证短信验证码是否失效
+activate CacheUtil
+CacheUtil --> PubUserService: 验证码（String）
+
+PubUserService -> CacheUtil: getObj 验证短信验证码是否正确
+CacheUtil --> PubUserService: 验证码（String）
+PubUserService -> CacheUtil: remove 验证成功后清空短信验证码
+return retMsg
+
+else 密码登录
+PubUserService -> PubUserService: 判断密码是否正确
+PubUserService -> PubUserService: 计算密码错误次数并记录错误时间
+
+end alt
+PubUserService -> PubUserService: 所有校验通过，登录错误次数归零
+return retMsg
+AuthController -> SecurityUtils: getSubject
+activate SecurityUtils
+return 获得Subject
+
+AuthController -> UsernamePasswordToken: 使用UsernamePasswordToken构造方法生成token
+activate UsernamePasswordToken
+return 获得token
+
+AuthController -> Subject: login 验证token的正误
+
+AuthController -> CommonDataUtil: setLoginedUserToSession 设置登录用户信息到session
+activate CommonDataUtil
+return retMsg
+return retMsg
+
+note left
+    <color red>bean 实体类（实际未用到）
+    msg 成功与否信息
+    show 前端是否展示弹框提示
+    <color red>title 弹框标题（实际未用到）
+    type 消息类型
+end note
+deactivate 客户端
+
+@enduml

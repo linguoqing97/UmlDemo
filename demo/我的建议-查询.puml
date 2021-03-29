@@ -1,0 +1,47 @@
+@startuml
+
+-> 客户端: 点击我的建议，进入相应页面
+activate 客户端
+客户端 -> PubAdviceController: selectAdvicesByCreateUser
+activate PubAdviceController
+note left
+    参数:
+        PageLimit 分页参数
+        PubAdvice 建议实体对象
+        <color red>HttpServletRequest 请求（未使用）
+end note
+
+PubAdviceController -> PubAdviceService: getAdviceByPage
+note left
+    参数:
+        PageLimit 分页参数
+        PubAdvice 建议实体对象
+end note
+
+activate PubAdviceService
+PubAdviceService -> PubAdviceService : 格式化查询条件的字符
+
+PubAdviceService -> PubAdviceDao: getAdvices
+note left
+    参数:
+        PubAdvice 建议实体对象
+end note
+activate PubAdviceDao
+PubAdviceDao -> PubAdviceDao: 得出结果List
+return list<PubAdvice>
+
+return list<PubAdvice>
+
+return list<PubAdvice>
+deactivate 客户端
+
+note left
+企业端展示字段：
+    建议编号    adviceNo
+    建议类型    type
+    问题标题    title
+    提出人       createUserName
+    提出时间    approveTime
+    状态          state
+end note
+@enduml

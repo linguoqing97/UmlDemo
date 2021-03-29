@@ -1,0 +1,60 @@
+@startuml
+-> 客户端: 右侧点击投诉建议，进入相应页面
+activate 客户端
+客户端 -> PubMessageController: getMessageNotReadedCount
+activate PubMessageController
+note left
+    无入参
+end note
+return long类型数字
+
+客户端 -> PasswordController: getImageCode
+activate PasswordController
+note left
+    无入参
+end note
+return retMsg(验证码地址)
+deactivate 客户端
+
+-> 客户端: 点击提交建议
+activate 客户端
+客户端 -> PubAdviceController: saveAdvices
+activate PubAdviceController
+note left
+参数：
+    type 问题类型
+    title 问题标题
+    content 问题内容
+    imgCode 验证码
+    entInfoModifyFileId 企业相关附件id
+    fileIds 附件id
+    key 验证码key
+    authCertificate 登录用户认证
+end note
+PubAdviceController -> PubAdviceController: 校验验证码正误
+PubAdviceController -> PubAdviceController: 校验问题类型字段正误
+PubAdviceController -> PubAdviceService: saveAdvices
+note left
+参数：
+    PubAdvice 建议相关内容
+    fileIds 附件id
+end note
+activate PubAdviceService
+PubAdviceService -> PubAdviceService: 生成建议编号
+PubAdviceService -> PubAdviceService: 更新文件状态为待审批
+PubAdviceService -> PubAdviceDao: save
+activate PubAdviceDao
+PubAdviceDao -> PubAdviceDao: 保存建议数据
+return 0("fail") or 1 ("success")
+return retMsg
+return retMsg
+note left
+企业端获得字段：
+    bean 实体类（实际未用到）
+    msg 成功与否信息
+    show 前端是否展示弹框提示
+    title 弹框标题（实际未用到）
+    type 消息类型
+end note
+deactivate 客户端
+@enduml

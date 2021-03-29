@@ -1,0 +1,81 @@
+@startuml
+
+-> 客户端: 点击"详情"，进入相应页面
+activate 客户端
+客户端 -> PubAdviceController: selectAdviceDetailByCreateUser
+activate PubAdviceController
+note left
+    参数:
+        PubAdvice 建议实体对象（仅含有建议id）
+end note
+
+PubAdviceController -> PubAdviceService: selectOne
+note left
+    参数:
+        PubAdvice 建议实体对象
+end note
+activate PubAdviceService
+PubAdviceService -> PubAdviceDao: selectOne
+note left
+    参数:
+        PubAdvice 建议实体对象
+end note
+activate PubAdviceDao
+PubAdviceDao -> PubAdviceDao: 得出结果PubAdvice
+return PubAdvice
+
+PubAdviceService -> PubEnterpriseService: selectByKey
+note left
+    参数:
+        entId 企业id
+end note
+activate PubEnterpriseService
+return 企业详细信息实体对象，使用.getEntName()方法获取企业名称
+
+PubAdviceService -> PubUserService: selectByKey
+note left
+    参数:
+        createUserId 创建人用户id
+end note
+activate PubUserService
+return 用户实体对象，使用.getUserName()方法获取用户名
+
+PubAdviceService -> PubUserService: selectByKey
+note left
+    参数:
+        approveUserId 提出人用户id
+end note
+activate PubUserService
+return 用户实体对象，使用.getUserName()方法获取用户名
+
+return PubAdvice
+
+return PubAdvice
+
+note left
+企业端展示字段：
+    建议编号    adviceNo
+    问题类型    type
+    问题标题    title
+    处理意见    feedback
+    问题内容    content
+    提出人       createUserName
+    提出时间    approveTime
+    状态          state
+end note
+
+deactivate 客户端
+客户端 -> PubFileController: selectFilesByRelateId
+activate 客户端
+note left
+    参数:
+        relateId 文件关联id
+        fileType 文件类型
+end note
+activate PubFileController
+return list<PubFile>
+note left
+    展示附件图片
+end note
+deactivate 客户端
+@enduml
